@@ -65,7 +65,7 @@ func (t *TServerSegImpl) AddOrUpdate(seg model.TServerSeg) error {
 
 // TServerSegImpl deletes record in t_server_seg table by server_id
 func (t *TServerSegImpl) Delete(serverID string) error {
-	_, err := t.db.Exec("delete from T_SERVER_REG where SERVER_ID=:1", serverID)
+	_, err := t.db.Exec("delete from T_SERVER_SEG where SERVER_ID=:1", serverID)
 	if err != nil {
 		return fmt.Errorf("error deleting t_server_reg by server_id(%s): %v", serverID, err)
 	}

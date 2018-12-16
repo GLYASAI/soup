@@ -38,7 +38,7 @@ func (t *TServerImpl) GetServerIDByIP(ip string) (string, error) {
 	var serverID string
 	err := t.db.QueryRow("select SERVER_ID from T_SERVER where IP_ADDR=:1", ip).Scan(&serverID)
 	if err != nil {
-		logrus.Errorf("error getting server_id by ip: %v", err)
+		logrus.Errorf("error getting server_id by ip(%s): %v", ip, err)
 		return "", fmt.Errorf("error getting server_id by ip: %v", err)
 	}
 	return serverID, nil

@@ -107,8 +107,12 @@ func New(client kubernetes.Interface, ns string, ts *dao.TServerImpl, tss *dao.T
 				return
 			}
 
-			err := tss.Delete(pod.Status.HostIP)
+			serverID, err := ts.GetServerIDByIP(pod.Status.HostIP)
 			if err != nil {
+				logrus.Warningf("cant not get t_server by ip(%s): %v", pod.Status.HostIP, err)
+			}
+
+			if err := tss.Delete(serverID); err != nil {
 				logrus.Warningf("can not deleting t_server_reg: %v", err)
 			}
 		},
@@ -164,5 +168,3 @@ func New(client kubernetes.Interface, ns string, ts *dao.TServerImpl, tss *dao.T
 func (s *Store) Run(stopCh chan struct{}) {
 	s.informers.Run(stopCh)
 }
-
-
