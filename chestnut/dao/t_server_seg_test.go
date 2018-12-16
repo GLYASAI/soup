@@ -16,15 +16,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package impl
+package dao
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-oci8"
+	"github.com/GLYASAI/soup/chestnut/dao/model"
 	"testing"
 )
 
-func TestTServerImpl_GetServerIDByIP(t *testing.T) {
+func TestTServerSeg_AddOrUpdate(t *testing.T) {
 	db, err := sql.Open("oci8", "huangrh/12345678@127.0.0.1:1521/helowin")
 	if err != nil {
 		t.Fatalf("Open error is not nil: %v", err)
@@ -40,24 +40,33 @@ func TestTServerImpl_GetServerIDByIP(t *testing.T) {
 		}
 	}()
 
-	// TODO: create table
-
-	_, err = db.Exec("insert into T_SERVER(SERVER_ID, IP_ADDR) values (:1, :2)", "888", "192.168.11.11")
+	_, err = db.Exec(`
+	create table t_server_seg
+	(
+		server_seg_id varchar(255),
+		server_id varchar(255),
+		seg_pref varchar(255),
+		ver varchar(255)
+	)`)
 	if err != nil {
-		t.Fatalf("ExecContext error is not nil: %v", err)
+		t.Fatalf("error create table %s: %v", "t_server_seg", err)
 	}
 
-	tserver := TServerImpl{
+	tss := &TServerSeg{
 		db: db,
 	}
-	serverID, err := tserver.GetServerIDByIP("192.168.11.11")
-	if err != nil {
-		t.Fatal(err.Error())
+	tServerSeg := model.TServerSeg{
+		ServerID: "999",
+		SegPref: "prefix",
+		Ver: "111111",
 	}
-	t.Log(serverID)
-
-	_, err = db.Exec("delete from T_SERVER WHERE SERVER_ID = :1", "888")
+	err = tss.AddOrUpdate(tServerSeg)
 	if err != nil {
-		t.Fatalf("Exec error is not nil: %v", err)
+		t.Fatalf("error adding or updating t_server_seg: %v", err)
+	}
+
+	_, err = db.Exec("drop table %s", "t_server_seg")
+	if err != nil {
+		t.Fatalf("error droping table %s: %v", "t_server_seg", err)
 	}
 }

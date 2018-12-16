@@ -16,26 +16,48 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package impl
+package dao
 
 import (
 	"database/sql"
-	"fmt"
-	"github.com/Sirupsen/logrus"
+	_ "github.com/mattn/go-oci8"
+	"testing"
 )
 
-// TServerImpl is the implementation of TServer
-type TServerImpl struct {
-	db *sql.DB
-}
-
-// GetServerIDByIP gets server_id from t_server by ipaddr
-func (t *TServerImpl) GetServerIDByIP(ip string) (string, error) {
-	var server_id string
-	err := t.db.QueryRow("select IP_ADDR from t_server where IP_ADDR=:1", ip).Scan(&server_id)
+func TestTServerImpl_GetServerIDByIP(t *testing.T) {
+	db, err := sql.Open("oci8", "huangrh/12345678@127.0.0.1:1521/helowin")
 	if err != nil {
-		logrus.Errorf("error getting server_id by ip: %v", err)
-		return "", fmt.Errorf("error getting server_id by ip: %v", err)
+		t.Fatalf("Open error is not nil: %v", err)
 	}
-	return server_id, nil
+	if db == nil {
+		t.Fatalf("db is nil")
+	}
+	// defer close database
+	defer func() {
+		err = db.Close()
+		if err != nil {
+			t.Fatalf("Close error is not nil: %v", err)
+		}
+	}()
+
+	// TODO: create table
+
+	_, err = db.Exec("insert into T_SERVER(SERVER_ID, IP_ADDR) values (:1, :2)", "888", "192.168.11.11")
+	if err != nil {
+		t.Fatalf("ExecContext error is not nil: %v", err)
+	}
+
+	tserver := TServerImpl{
+		db: db,
+	}
+	serverID, err := tserver.GetServerIDByIP("192.168.11.11")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	t.Log(serverID)
+
+	_, err = db.Exec("delete from T_SERVER WHERE SERVER_ID = :1", "888")
+	if err != nil {
+		t.Fatalf("Exec error is not nil: %v", err)
+	}
 }

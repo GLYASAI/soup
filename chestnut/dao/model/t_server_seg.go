@@ -16,26 +16,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package dao
+package model
 
-import (
-	"database/sql"
-	"fmt"
-	"github.com/Sirupsen/logrus"
-)
-
-// TServerImpl is the implementation of TServer
-type TServerImpl struct {
-	db *sql.DB
-}
-
-// GetServerIDByIP gets server_id from t_server by ipaddr
-func (t *TServerImpl) GetServerIDByIP(ip string) (string, error) {
-	var server_id string
-	err := t.db.QueryRow("select IP_ADDR from t_server where IP_ADDR=:1", ip).Scan(&server_id)
-	if err != nil {
-		logrus.Errorf("error getting server_id by ip: %v", err)
-		return "", fmt.Errorf("error getting server_id by ip: %v", err)
-	}
-	return server_id, nil
+// TServerSeg is the model of the t_server_seg table.
+type TServerSeg struct {
+	ServerID string
+	SegPref  string
+	Ver      string
 }
