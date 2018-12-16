@@ -29,13 +29,17 @@ type TServerImpl struct {
 	db *sql.DB
 }
 
+func NewTServer(db *sql.DB) *TServerImpl {
+	return &TServerImpl{db}
+}
+
 // GetServerIDByIP gets server_id from t_server by ipaddr
 func (t *TServerImpl) GetServerIDByIP(ip string) (string, error) {
-	var server_id string
-	err := t.db.QueryRow("select IP_ADDR from T_SERVER where IP_ADDR=:1", ip).Scan(&server_id)
+	var serverID string
+	err := t.db.QueryRow("select SERVER_ID from T_SERVER where IP_ADDR=:1", ip).Scan(&serverID)
 	if err != nil {
 		logrus.Errorf("error getting server_id by ip: %v", err)
 		return "", fmt.Errorf("error getting server_id by ip: %v", err)
 	}
-	return server_id, nil
+	return serverID, nil
 }

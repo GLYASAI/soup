@@ -19,23 +19,23 @@
 package store
 
 import (
-	apiv1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
-// EndpointLister makes a store that lists Endpoints.
-type EndpointLister struct {
+// PodLister makes a Store that lists Endpoints.
+type PodLister struct {
 	cache.Store
 }
 
-// ByKey returns the Endpoints of the Service matching key in the local Endpoint store.
-func (s *EndpointLister) ByKey(key string) (*apiv1.Endpoints, error) {
-	eps, exists, err := s.GetByKey(key)
+// ByKey returns the Endpoints of the Service matching key in the local Endpoint Store.
+func (s *PodLister) ByKey(key string) (*corev1.Pod, error) {
+	pod, exists, err := s.GetByKey(key)
 	if err != nil {
 		return nil, err
 	}
 	if !exists {
 		return nil, NotExistsError(key)
 	}
-	return eps.(*apiv1.Endpoints), nil
+	return pod.(*corev1.Pod), nil
 }

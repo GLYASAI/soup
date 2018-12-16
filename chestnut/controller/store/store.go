@@ -32,38 +32,36 @@ import (
 	"time"
 )
 
-// NotExistsError is returned when an object does not exist in a local store.
+// NotExistsError is returned when an object does not exist in a local Store.
 type NotExistsError string
 
 // Error implements the error interface.
 func (e NotExistsError) Error() string {
-	return fmt.Sprintf("no object matching key %q in local store", string(e))
+	return fmt.Sprintf("no object matching key %q in local Store", string(e))
 }
 
-type store struct {
+type Store struct {
 	informers *Informer
 	listers   *Lister
 }
 
 // Lister contains object listers (stores).
 type Lister struct {
-	Endpoint EndpointLister
+	Pod PodLister
 }
 
-func New(client kubernetes.Interface, ns string, ts *dao.TServerImpl, tss *dao.TServerSegImpl) {
-	s := store{
+func New(client kubernetes.Interface, ns string, ts *dao.TServerImpl, tss *dao.TServerSegImpl) Store {
+	s := Store{
 		informers: &Informer{},
 		listers:   &Lister{},
 	}
 
 	// create informers factory, enable and assign required informers
 	infFactory := informers.NewFilteredSharedInformerFactory(client, time.Second, ns,
-		func(options *metav1.ListOptions) {
-			//options.LabelSelector = "creater=Rainbond"
-		})
+		func(options *metav1.ListOptions) {})
 
-	s.informers.Pod = infFactory.Core().V1().Endpoints().Informer()
-	s.listers.Endpoint.Store = s.informers.Pod.GetStore()
+	s.informers.Pod = infFactory.Core().V1().Pods().Informer()
+	s.listers.Pod.Store = s.informers.Pod.GetStore()
 
 	// Endpoint Event Handler
 	podEventHandler := cache.ResourceEventHandlerFuncs{
@@ -159,4 +157,12 @@ func New(client kubernetes.Interface, ns string, ts *dao.TServerImpl, tss *dao.T
 	}
 
 	s.informers.Pod.AddEventHandlerWithResyncPeriod(podEventHandler, 10*time.Second)
+
+	return s
 }
+
+func (s *Store) Run(stopCh chan struct{}) {
+	s.informers.Run(stopCh)
+}
+
+

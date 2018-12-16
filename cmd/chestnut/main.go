@@ -19,16 +19,11 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 	"github.com/GLYASAI/soup/cmd/chestnut/option"
 	"github.com/GLYASAI/soup/cmd/chestnut/server"
-	"github.com/mattn/go-oci8"
 	"github.com/spf13/pflag"
-	"log"
 	"os"
-	"time"
 )
 
 func main() {
@@ -40,84 +35,4 @@ func main() {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
-}
-
-func main2() {
-	oci8.OCI8Driver.Logger = log.New(os.Stderr, "oci8 ", log.Ldate|log.Ltime|log.LUTC|log.Llongfile)
-
-	// [username/[password]@]host[:port][/instance_name][?param1=value1&...&paramN=valueN]
-	// A normal simple Open to localhost would look like:
-	// db, err := sql.Open("oci8", "127.0.0.1")
-	// For testing, need to use additional variables
-	db, err := sql.Open("oci8", "huangrh/12345678@127.0.0.1:1521/helowin")
-	if err != nil {
-		fmt.Printf("Open error is not nil: %v", err)
-		return
-	}
-	if db == nil {
-		fmt.Println("db is nil")
-		return
-	}
-
-	// defer close database
-	defer func() {
-		err = db.Close()
-		if err != nil {
-			fmt.Println("Close error is not nil:", err)
-		}
-	}()
-
-	var rows *sql.Rows
-	ctx, cancel := context.WithTimeout(context.Background(), 55*time.Second)
-	defer cancel()
-	rows, err = db.QueryContext(ctx, "select 1 from dual")
-	if err != nil {
-		fmt.Println("QueryContext error is not nil:", err)
-		return
-	}
-	if !rows.Next() {
-		fmt.Println("no Next rows")
-		return
-	}
-
-	dest := make([]interface{}, 1)
-	destPointer := make([]interface{}, 1)
-	destPointer[0] = &dest[0]
-	err = rows.Scan(destPointer...)
-	if err != nil {
-		fmt.Println("Scan error is not nil:", err)
-		return
-	}
-
-	if len(dest) != 1 {
-		fmt.Println("len dest != 1")
-		return
-	}
-	data, ok := dest[0].(float64)
-	if !ok {
-		fmt.Println("dest type not float64")
-		return
-	}
-	if data != 1 {
-		fmt.Println("data not equal to 1")
-		return
-	}
-
-	if rows.Next() {
-		fmt.Println("has Next rows")
-		return
-	}
-
-	err = rows.Err()
-	if err != nil {
-		fmt.Println("Err error is not nil:", err)
-		return
-	}
-	err = rows.Close()
-	if err != nil {
-		fmt.Println("Close error is not nil:", err)
-		return
-	}
-
-	fmt.Println(data)
 }

@@ -28,6 +28,10 @@ type TServerSegImpl struct {
 	db *sql.DB
 }
 
+func NewTServerSeg(db *sql.DB) *TServerSegImpl {
+	return &TServerSegImpl{db}
+}
+
 func (t *TServerSegImpl) AddOrUpdate(seg model.TServerSeg) error {
 	rows, err := t.db.Query("select * from T_SERVER_SEG where SERVER_ID = :1", seg.ServerID)
 	if err != nil {

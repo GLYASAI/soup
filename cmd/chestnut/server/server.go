@@ -24,6 +24,7 @@ import (
 	"github.com/GLYASAI/soup/chestnut/controller"
 	"github.com/GLYASAI/soup/cmd/chestnut/option"
 	"github.com/Sirupsen/logrus"
+	_ "github.com/mattn/go-oci8"
 	"os"
 	"os/signal"
 	"syscall"
@@ -48,15 +49,19 @@ func Run(cfg *option.Config) error {
 	}()
 
 	errCh := make(chan error)
-	c, err := controller.New(cfg)
+	stopCh := make(chan struct{})
+	c, err := controller.New(cfg, db, stopCh)
 	if err != nil {
 		return err
 	}
 	c.Start()
+	logrus.Info("Successfully start chestnut.")
 
 	term := make(chan os.Signal)
 	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
 	select {
+	case <-stopCh:
+		logrus.Warn("Received stop chan, exiting gracefully...")
 	case <-term:
 		logrus.Warn("Received SIGTERM, exiting gracefully...")
 	case err := <-errCh:

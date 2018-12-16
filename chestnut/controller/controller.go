@@ -31,9 +31,10 @@ type Controller struct {
 	cfg       *option.Config
 	K8sClient kubernetes.Interface
 	DB        *sql.DB
+	stopCh    chan struct{}
 }
 
-func New(cfg *option.Config) (*Controller, error) {
+func New(cfg *option.Config, db *sql.DB, stopCh chan struct{}) (*Controller, error) {
 	clientset, err := util.NewCK8sClient(cfg.K8SConfPath)
 	if err != nil {
 		return nil, err
@@ -42,14 +43,17 @@ func New(cfg *option.Config) (*Controller, error) {
 	c := &Controller{
 		cfg:       cfg,
 		K8sClient: clientset,
+		stopCh:    stopCh,
+		DB: db,
 	}
 
 	return c, nil
 }
 
 func (c *Controller) Start() {
-	ts := &dao.TServerImpl{c.DB}
-	tss := &dao.TServerSegImpl{c.DB}
+	ts := dao.NewTServer(c.DB)
+	tss := dao.NewTServerSeg(c.DB)
 
-	store.New(c.K8sClient, c.cfg.Namespace, ts, tss)
+	s := store.New(c.K8sClient, c.cfg.Namespace, ts, tss)
+	s.Run(c.stopCh)
 }
