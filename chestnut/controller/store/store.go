@@ -70,7 +70,7 @@ func New(client kubernetes.Interface, ns string, ts *dao.TServerImpl, tss *dao.T
 		AddFunc: func(obj interface{}) {
 			pod, ok := obj.(*corev1.Pod)
 			if !ok {
-				logrus.Warningf("can not convert %s to *corev1.Endpoints", reflect.TypeOf(obj), ep)
+				logrus.Warningf("can not convert %s to *corev1.Endpoints", reflect.TypeOf(obj), pod)
 				return
 			}
 
@@ -102,11 +102,29 @@ func New(client kubernetes.Interface, ns string, ts *dao.TServerImpl, tss *dao.T
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
-			// TODO
+			pod := obj.(*corev1.Pod)
+			pod, ok := obj.(*corev1.Pod)
+			if !ok {
+				logrus.Warningf("can not convert %s to *corev1.Endpoints", reflect.TypeOf(obj), pod)
+				return
+			}
+
+			err := tss.Delete(pod.Status.HostIP)
+			if err != nil {
+				logrus.Warningf("can not deleting t_server_reg: %v", err)
+			}
 		},
 		UpdateFunc: func(old, cur interface{}) {
-			opod := old.(*corev1.Pod)
-			cpod := cur.(*corev1.Pod)
+			opod, ok := old.(*corev1.Pod)
+			if !ok {
+				logrus.Warningf("can not convert %s to *corev1.Endpoints", reflect.TypeOf(old), opod)
+				return
+			}
+			cpod, ok := cur.(*corev1.Pod)
+			if !ok {
+				logrus.Warningf("can not convert %s to *corev1.Endpoints", reflect.TypeOf(cur), cpod)
+				return
+			}
 			// ignore the same secret as the old one
 			if opod.ResourceVersion == cpod.ResourceVersion || reflect.DeepEqual(opod, cpod) {
 				return
