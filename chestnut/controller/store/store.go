@@ -71,6 +71,9 @@ func New(client kubernetes.Interface, ns string, ts *dao.TServerImpl, tss *dao.T
 				logrus.Warningf("can not convert %s to *corev1.Endpoints", reflect.TypeOf(obj), pod)
 				return
 			}
+			if pod.Status.Phase != corev1.PodRunning {
+				return
+			}
 
 			for _, c := range pod.Spec.Containers {
 				var segpref string
