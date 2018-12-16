@@ -32,7 +32,7 @@ import (
 
 //Run starts the entire program
 func Run(cfg *option.Config) error {
-	db, err := sql.Open("oci8", "huangrh/12345678@127.0.0.1:1521/helowin")
+	db, err := sql.Open("oci8", cfg.OpenStr)
 	if err != nil {
 		logrus.Error("Open error is not nil: %v", err)
 		return fmt.Errorf("Open error is not nil: %v", err)

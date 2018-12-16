@@ -29,6 +29,7 @@ type Config struct {
 	LogLevel    string
 	K8SConfPath string
 	Namespace   string
+	OpenStr     string
 }
 
 func NewConfig() *Config {
@@ -40,6 +41,7 @@ func (c *Config) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&c.LogLevel, "log-level", "debug", "the gateway log level")
 	fs.StringVar(&c.K8SConfPath, "kube-conf", "/opt/rainbond/etc/kubernetes/kubecfg/admin.kubeconfig", "absolute path to the kubeconfig file.")
 	fs.StringVar(&c.Namespace, "namespace", "chestnut", "the namespace of the resource that needs to watch in kubernetes.")
+	fs.StringVar(&c.OpenStr, "open-str", "huangrh/12345678@127.0.0.1:1521/helowin", "open string")
 }
 
 // SetLog sets the standard logger
