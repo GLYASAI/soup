@@ -19,6 +19,8 @@
 package server
 
 import (
+	"database/sql"
+	"fmt"
 	"github.com/GLYASAI/soup/chestnut/controller"
 	"github.com/GLYASAI/soup/cmd/chestnut/option"
 	"github.com/Sirupsen/logrus"
@@ -29,8 +31,23 @@ import (
 
 //Run starts the entire program
 func Run(cfg *option.Config) error {
-	errCh := make(chan error)
+	db, err := sql.Open("oci8", "huangrh/12345678@127.0.0.1:1521/helowin")
+	if err != nil {
+		logrus.Error("Open error is not nil: %v", err)
+		return fmt.Errorf("Open error is not nil: %v", err)
+	}
+	if db == nil {
+		return fmt.Errorf("db is nil")
+	}
+	// defer close database
+	defer func() {
+		err = db.Close()
+		if err != nil {
+			logrus.Errorf("Close error is not nil: %v", err)
+		}
+	}()
 
+	errCh := make(chan error)
 	c, err := controller.New(cfg)
 	if err != nil {
 		return err

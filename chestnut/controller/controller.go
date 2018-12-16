@@ -19,6 +19,7 @@
 package controller
 
 import (
+	"database/sql"
 	"github.com/GLYASAI/soup/chestnut/controller/store"
 	"github.com/GLYASAI/soup/chestnut/dao"
 	"github.com/GLYASAI/soup/chestnut/util"
@@ -29,6 +30,7 @@ import (
 type Controller struct {
 	cfg       *option.Config
 	K8sClient kubernetes.Interface
+	DB        *sql.DB
 }
 
 func New(cfg *option.Config) (*Controller, error) {
@@ -46,7 +48,8 @@ func New(cfg *option.Config) (*Controller, error) {
 }
 
 func (c *Controller) Start() {
-	ts := &dao.TServerImpl{}
+	ts := &dao.TServerImpl{c.DB}
+	tss := &dao.TServerSegImpl{c.DB}
 
-	store.New(c.K8sClient, c.cfg.Namespace, ts)
+	store.New(c.K8sClient, c.cfg.Namespace, ts, tss)
 }
