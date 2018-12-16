@@ -33,7 +33,7 @@ func NewTServerSeg(db *sql.DB) *TServerSegImpl {
 }
 
 func (t *TServerSegImpl) AddOrUpdate(seg model.TServerSeg) error {
-	rows, err := t.db.Query("select * from T_SERVER_SEG where SERVER_ID = :1", seg.ServerID)
+	rows, err := t.db.Query("select SERVER_ID from T_SERVER_SEG where SERVER_ID = :1", seg.ServerID)
 	if err != nil {
 		return fmt.Errorf("error selecting data from t_server_seg: %v", err)
 	}
