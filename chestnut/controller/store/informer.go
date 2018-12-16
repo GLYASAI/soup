@@ -26,17 +26,17 @@ import (
 
 // Informer defines the required SharedIndexInformers that interact with the API server.
 type Informer struct {
-	Endpoint cache.SharedIndexInformer
+	Pod cache.SharedIndexInformer
 }
 
 // Run initiates the synchronization of the informers against the API server.
 func (i *Informer) Run(stopCh chan struct{}) {
-	go i.Endpoint.Run(stopCh)
+	go i.Pod.Run(stopCh)
 
 	// wait for all involved caches to be synced before processing items
 	// from the queue
 	if !cache.WaitForCacheSync(stopCh,
-		i.Endpoint.HasSynced,
+		i.Pod.HasSynced,
 	) {
 		runtime.HandleError(fmt.Errorf("Timed out waiting for caches to sync"))
 	}

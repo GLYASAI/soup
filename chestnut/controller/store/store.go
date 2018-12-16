@@ -20,11 +20,15 @@ package store
 
 import (
 	"fmt"
+	"github.com/GLYASAI/soup/chestnut/dao"
+	"github.com/GLYASAI/soup/chestnut/dao/model"
+	"github.com/Sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+	"reflect"
 	"time"
 )
 
@@ -46,7 +50,7 @@ type Lister struct {
 	Endpoint EndpointLister
 }
 
-func New(client kubernetes.Interface, ns string) {
+func New(client kubernetes.Interface, ns string, ts *dao.TServerImpl, tss *dao.TServerSegImpl) {
 	s := store{
 		informers: &Informer{},
 		listers:   &Lister{},
@@ -58,25 +62,83 @@ func New(client kubernetes.Interface, ns string) {
 			//options.LabelSelector = "creater=Rainbond"
 		})
 
-	s.informers.Endpoint = infFactory.Core().V1().Endpoints().Informer()
-	s.listers.Endpoint.Store = s.informers.Endpoint.GetStore()
+	s.informers.Pod = infFactory.Core().V1().Endpoints().Informer()
+	s.listers.Endpoint.Store = s.informers.Pod.GetStore()
 
 	// Endpoint Event Handler
-	epEventHandler := cache.ResourceEventHandlerFuncs{
+	podEventHandler := cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			// TODO
+			pod, ok := obj.(*corev1.Pod)
+			if !ok {
+				logrus.Warningf("can not convert %s to *corev1.Endpoints", reflect.TypeOf(obj), ep)
+				return
+			}
+
+			for _, c := range pod.Spec.Containers {
+				var segpref string
+				var ver string
+				for _, e := range c.Env {
+					if e.Name == "SEGPREF" {
+						segpref = e.Value
+					} else if e.Name == "VER" {
+						ver = e.Value
+					}
+				}
+				if segpref == "" || ver == "" {
+					continue
+				}
+
+				serverID, err := ts.GetServerIDByIP(pod.Status.HostIP)
+				if err != nil {
+					logrus.Warningf("can not get server_id by ip(%s): %v", pod.Status.HostIP, err)
+					continue
+				}
+				seg := model.TServerSeg{serverID, segpref, ver}
+				if err := tss.AddOrUpdate(seg); err != nil {
+					logrus.Warningf("can not add or update t_server_seg: %v", err)
+					continue
+				}
+				break
+			}
 		},
 		DeleteFunc: func(obj interface{}) {
 			// TODO
 		},
 		UpdateFunc: func(old, cur interface{}) {
-			oep := old.(*corev1.Endpoints)
-			cep := cur.(*corev1.Endpoints)
-			_ = oep
-			_ = cep
-			// TODO
+			opod := old.(*corev1.Pod)
+			cpod := cur.(*corev1.Pod)
+			// ignore the same secret as the old one
+			if opod.ResourceVersion == cpod.ResourceVersion || reflect.DeepEqual(opod, cpod) {
+				return
+			}
+			for _, c := range cpod.Spec.Containers {
+				var segpref string
+				var ver string
+				for _, e := range c.Env {
+					if e.Name == "SEGPREF" {
+						segpref = e.Value
+					} else if e.Name == "VER" {
+						ver = e.Value
+					}
+				}
+				if segpref == "" || ver == "" {
+					continue
+				}
+
+				serverID, err := ts.GetServerIDByIP(opod.Status.HostIP)
+				if err != nil {
+					logrus.Warningf("can not get server_id by ip(%s): %v", opod.Status.HostIP, err)
+					continue
+				}
+				seg := model.TServerSeg{serverID, segpref, ver}
+				if err := tss.AddOrUpdate(seg); err != nil {
+					logrus.Warningf("can not add or update t_server_seg: %v", err)
+					continue
+				}
+				break
+			}
 		},
 	}
 
-	s.informers.Endpoint.AddEventHandlerWithResyncPeriod(epEventHandler, 10*time.Second)
+	s.informers.Pod.AddEventHandlerWithResyncPeriod(podEventHandler, 10*time.Second)
 }

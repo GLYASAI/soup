@@ -25,11 +25,11 @@ import (
 	"github.com/twinj/uuid"
 )
 
-type TServerSeg struct {
+type TServerSegImpl struct {
 	db *sql.DB
 }
 
-func (t *TServerSeg) AddOrUpdate(seg model.TServerSeg) error {
+func (t *TServerSegImpl) AddOrUpdate(seg model.TServerSeg) error {
 	rows, err := t.db.Query("select * from T_SERVER_SEG where SERVER_ID = :1", seg.ServerID)
 	if err != nil {
 		return fmt.Errorf("error selecting data from t_server_seg: %v", err)
@@ -60,7 +60,7 @@ func (t *TServerSeg) AddOrUpdate(seg model.TServerSeg) error {
 	return nil
 }
 
-// TServerSeg deletes record in t_server_seg table by server_id
-func (t *TServerSeg) Delete(serverID string) error {
+// TServerSegImpl deletes record in t_server_seg table by server_id
+func (t *TServerSegImpl) Delete(serverID string) error {
 	return nil
 }

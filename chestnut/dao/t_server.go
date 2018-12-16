@@ -32,7 +32,7 @@ type TServerImpl struct {
 // GetServerIDByIP gets server_id from t_server by ipaddr
 func (t *TServerImpl) GetServerIDByIP(ip string) (string, error) {
 	var server_id string
-	err := t.db.QueryRow("select IP_ADDR from t_server where IP_ADDR=:1", ip).Scan(&server_id)
+	err := t.db.QueryRow("select IP_ADDR from T_SERVER where IP_ADDR=:1", ip).Scan(&server_id)
 	if err != nil {
 		logrus.Errorf("error getting server_id by ip: %v", err)
 		return "", fmt.Errorf("error getting server_id by ip: %v", err)

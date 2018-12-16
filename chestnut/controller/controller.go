@@ -20,6 +20,7 @@ package controller
 
 import (
 	"github.com/GLYASAI/soup/chestnut/controller/store"
+	"github.com/GLYASAI/soup/chestnut/dao"
 	"github.com/GLYASAI/soup/chestnut/util"
 	"github.com/GLYASAI/soup/cmd/chestnut/option"
 	"k8s.io/client-go/kubernetes"
@@ -45,5 +46,7 @@ func New(cfg *option.Config) (*Controller, error) {
 }
 
 func (c *Controller) Start() {
-	store.New(c.K8sClient, c.cfg.Namespace)
+	ts := &dao.TServerImpl{}
+
+	store.New(c.K8sClient, c.cfg.Namespace, ts)
 }

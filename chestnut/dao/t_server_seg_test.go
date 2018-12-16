@@ -52,7 +52,7 @@ func TestTServerSeg_AddOrUpdate(t *testing.T) {
 		t.Fatalf("error create table %s: %v", "t_server_seg", err)
 	}
 
-	tss := &TServerSeg{
+	tss := &TServerSegImpl{
 		db: db,
 	}
 	tServerSeg := model.TServerSeg{
