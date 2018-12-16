@@ -22,7 +22,6 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/GLYASAI/soup/chestnut/dao/model"
-	"github.com/twinj/uuid"
 )
 
 type TServerSegImpl struct {
@@ -38,21 +37,21 @@ func (t *TServerSegImpl) AddOrUpdate(seg model.TServerSeg) error {
 
 	// add
 	if !rows.Next() {
-		_, err := t.db.Exec("insert into T_SERVER_SEG(SERVER_SEG_ID, SERVER_ID, SEG_PREF, VER) VALUES (:1, :2, :3, :4)",
-			uuid.NewV4(), seg.ServerID, seg.SegPref, seg.Ver)
+		_, err := t.db.Exec("insert into T_SERVER_SEG(SERVER_ID, SEG_PREF, VER) VALUES (:1, :2, :3)",
+			seg.ServerID, seg.SegPref, seg.Ver)
 		if err != nil {
 			return fmt.Errorf("error inserting t_server_seg: %v", err)
 		}
 		return nil
 	}
 	// update
-	var server_seg_id string
-	err = rows.Scan(&server_seg_id)
+	var server_id string
+	err = rows.Scan(&server_id)
 	if err != nil {
 		return fmt.Errorf("error scaning rows: %v", err)
 	}
-	_, err = t.db.Exec("update T_SERVER_SEG set SERVER_ID=:1, SEG_PREF=:2, VER=:3 WHERE SERVER_SEG_ID=:4",
-		seg.ServerID, seg.SegPref, seg.Ver, server_seg_id)
+	_, err = t.db.Exec("update T_SERVER_SEG set SERVER_ID=:1, SEG_PREF=:2, VER=:3 WHERE SERVER_ID=:1",
+		seg.ServerID, seg.SegPref, seg.Ver)
 	if err != nil {
 		return fmt.Errorf("error updating t_server_seg: %v", err)
 	}

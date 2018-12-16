@@ -43,7 +43,6 @@ func TestTServerSeg_AddOrUpdate(t *testing.T) {
 	_, err = db.Exec(`
 	create table t_server_seg
 	(
-		server_seg_id varchar(255),
 		server_id varchar(255),
 		seg_pref varchar(255),
 		ver varchar(255)
